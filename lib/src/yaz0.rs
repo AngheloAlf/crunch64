@@ -115,7 +115,7 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             index_out_ptr += 1;
         }
 
-        let (mut group_pos, mut group_size) = window.search(input_pos, 0x111);
+        let (mut group_pos, mut group_size) = window.search(input_pos, 0x111)?;
 
         // If the group isn't larger than 2 bytes, copying the input without compression is smaller
         if group_size <= 2 {
@@ -126,7 +126,7 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             index_out_ptr += 1;
         } else {
             // Search for a new group after one position after the current one
-            let (new_position, new_size) = window.search(input_pos + 1, 0x111);
+            let (new_position, new_size) = window.search(input_pos + 1, 0x111)?;
 
             // If the new group is better than the current group by at least 2 bytes, use it instead
             if new_size >= group_size + 2 {

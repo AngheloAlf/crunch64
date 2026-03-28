@@ -15,3 +15,21 @@ license = "MIT"
 # cargo msrv find -- cargo check -p crunch64
 # ```
 rust-version = "1.74.0"
+
+# [profile.release]
+# panic = "abort"
+
+# [profile.dev]
+# panic = "abort"
+
+# cargo rustc --manifest-path lib/Cargo.toml --lib --features c_bindings --release --crate-type staticlib --target x86_64-unknown-linux-musl -- -C panic=abort -C link-arg=-static -C link-self-contained=yes -C force-unwind-tables=no
+
+# .cargo/config.toml
+# [target.x86_64-unknown-linux-musl]
+# rustflags = [
+#   "-C", "panic=abort",
+#   "-C", "link-arg=-static",
+#   "-C", "link-self-contained=yes",
+#   "-C", "force-unwind-tables=no",
+# ]
+

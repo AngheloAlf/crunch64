@@ -83,10 +83,11 @@ impl<T: Copy + Ord> Heap<T> {
 
     fn remove_min(&mut self) -> T {
         let min = self.data[0];
-        let last = self.data.pop().unwrap();
-        if !self.data.is_empty() {
-            self.data[0] = last;
-            self.sift_down(0);
+        if let Some(last) = self.data.pop() {
+            if !self.data.is_empty() {
+                self.data[0] = last;
+                self.sift_down(0);
+            }
         }
         min
     }
@@ -695,7 +696,12 @@ impl BlockWriter {
         false
     }
 
-    fn flush_block(&mut self, output: &mut OutputStream, input_bytes: Option<&[u8]>, eof: bool) {
+    fn flush_block(
+        &mut self,
+        output: &mut OutputStream,
+        input_bytes: Option<&[u8]>,
+        eof: bool,
+    ) -> Result<(), Crunch64Error> {
         self.data_elements.push(DataElement::End);
         self.lfreqs[END] += 1;
 
@@ -739,7 +745,8 @@ impl BlockWriter {
         // Write block
         output.write_bits(eof as u16, 1);
         if uncompressed_size_bytes <= compressed_size_bytes {
-            let data: &[u8] = input_bytes.unwrap();
+            // In theory this error should never trigger by how uncompressed_size_bytes is defined.
+            let data: &[u8] = input_bytes.ok_or(Crunch64Error::InternalErrorGzipInputBytes)?;
             let len: u16 = data.len() as u16;
             let nlen: u16 = !len;
             output.write_bits(0b00, 2);
@@ -773,6 +780,8 @@ impl BlockWriter {
         self.bfreqs.fill(0);
         self.lfreqs.fill(0);
         self.dfreqs.fill(0);
+
+        Ok(())
     }
 }
 
@@ -1027,9 +1036,13 @@ pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>
 
             if should_flush {
                 if pos >= block_length {
-                    writer.flush_block(&mut output, Some(&window[pos - block_length..pos]), false);
+                    writer.flush_block(
+                        &mut output,
+                        Some(&window[pos - block_length..pos]),
+                        false,
+                    )?;
                 } else {
-                    writer.flush_block(&mut output, None, false);
+                    writer.flush_block(&mut output, None, false)?;
                 }
                 block_length = 0;
             }
@@ -1046,9 +1059,13 @@ pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>
 
             if should_flush {
                 if pos >= block_length {
-                    writer.flush_block(&mut output, Some(&window[pos - block_length..pos]), false);
+                    writer.flush_block(
+                        &mut output,
+                        Some(&window[pos - block_length..pos]),
+                        false,
+                    )?;
                 } else {
-                    writer.flush_block(&mut output, None, false);
+                    writer.flush_block(&mut output, None, false)?;
                 }
                 block_length = 0;
             }
@@ -1102,9 +1119,9 @@ pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>
     }
 
     if pos >= block_length {
-        writer.flush_block(&mut output, Some(&window[pos - block_length..pos]), true);
+        writer.flush_block(&mut output, Some(&window[pos - block_length..pos]), true)?;
     } else {
-        writer.flush_block(&mut output, None, true);
+        writer.flush_block(&mut output, None, true)?;
     }
 
     output.write_bytes(&hasher.finalize().to_le_bytes());

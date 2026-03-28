@@ -193,7 +193,7 @@ jobs:
           path: dist
           if-no-files-found: error
 
-      - name: Install uvci_check_wheel
+      - name: Install uv
         uses: astral-sh/setup-uv@v7
       - name: Test wheels with min version (${{ matrix.platform.python_version_min }})
         if: ${{ matrix.platform.target == 'x64' }}

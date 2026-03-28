@@ -182,16 +182,20 @@ impl Window<'_> {
     // Move the window forward the input position, and seach the window back-to-front for a match
     // at most `max_match_length` bytes long, returning the offset and length of the longest match found.
     // Successive searches can only be performed at increasing input positions.
-    pub(crate) fn search(&mut self, input_pos: usize, max_match_length: usize) -> (u32, u32) {
+    pub(crate) fn search(
+        &mut self,
+        input_pos: usize,
+        max_match_length: usize,
+    ) -> Result<(u32, u32), Crunch64Error> {
         if input_pos < self.input_pos {
-            panic!("window moved backwards");
+            return Err(Crunch64Error::CompressionWindowMovedBackwards);
         } else if input_pos >= self.input.len() {
-            return (0, 0);
+            return Ok((0, 0));
         }
 
         let max_match_length = cmp::min(max_match_length, self.input.len() - input_pos);
         if max_match_length < MIN_MATCH {
-            return (0, 0);
+            return Ok((0, 0));
         }
 
         while self.input_pos < input_pos {
@@ -230,6 +234,6 @@ impl Window<'_> {
             pos = self.next[pos as usize];
         }
 
-        (best_offset as u32, best_len as u32)
+        Ok((best_offset as u32, best_len as u32))
     }
 }

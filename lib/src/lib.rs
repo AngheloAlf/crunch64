@@ -1,4 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+#![warn(clippy::panic)]
+#![warn(clippy::unwrap_used)]
+#![warn(clippy::expect_used)]
+#![warn(clippy::unimplemented)]
+#![warn(clippy::todo)]
 
 #[macro_use]
 extern crate alloc;
@@ -41,6 +46,10 @@ pub enum Crunch64Error {
     NullPointer,
     #[error("Invalid compression level")]
     InvalidCompressionLevel,
+    #[error("The window moved backwards")]
+    CompressionWindowMovedBackwards,
+    #[error("Internal error: The gzip input bytes was None when it was expected to be Some")]
+    InternalErrorGzipInputBytes,
 }
 
 #[cfg(feature = "python_bindings")]

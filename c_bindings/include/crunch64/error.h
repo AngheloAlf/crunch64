@@ -19,6 +19,8 @@ typedef enum Crunch64Error {
     Crunch64Error_OutOfBounds,
     Crunch64Error_NullPointer,
     Crunch64Error_InvalidCompressionLevel,
+    Crunch64Error_CompressionWindowMovedBackwards,
+    Crunch64Error_InternalErrorGzipInputBytes,
 } Crunch64Error;
 
 #ifdef __cplusplus
