@@ -1210,6 +1210,7 @@ pub(crate) mod python_bindings {
 
 #[cfg(test)]
 #[cfg(feature = "std")]
+#[allow(clippy::panic)]
 mod tests {
     use crate::Crunch64Error;
     use core::panic;
